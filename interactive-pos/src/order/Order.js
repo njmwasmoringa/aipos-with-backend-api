@@ -4,6 +4,7 @@ import { UserContext } from '../auth/userProvider';
 import Modal from '../modal';
 import Processorder from '../process-order';
 import './order.css';
+import configs from "../configs.json";
 
 function Order({ orderNumber = 1, customerNumber = 1, onNewOrder = () => { } }) {
 
@@ -44,13 +45,22 @@ function Order({ orderNumber = 1, customerNumber = 1, onNewOrder = () => { } }) 
         setOrder([]);
     }
 
+    function payOrder(){
+        if(order.length){
+            toggleModal();
+        }
+        else{
+            alert("No items in the order");
+        }
+    }
+
     useEffect(() => {
 
         if (user == null) {
             navigate("/")
         }
 
-        fetch("http://localhost:3001/products")
+        fetch(`${configs.api_endpoint}/products`)
             .then(resp => resp.json())
             .then((products) => {
                 setSearchedItems(products.filter(product => product.name.toLowerCase().substring(0, productSearchValue.length) === productSearchValue.toLowerCase()));
@@ -67,7 +77,6 @@ function Order({ orderNumber = 1, customerNumber = 1, onNewOrder = () => { } }) 
                     order={{ products: order }}
                     onProcess={(purchaseOrder) => orderProcessed(purchaseOrder)}
                     customerNumber={customerNumber}
-                    orderNumber={orderNumber}
                 />}
                 dismiss={toggleModal}
             />}
@@ -83,14 +92,13 @@ function Order({ orderNumber = 1, customerNumber = 1, onNewOrder = () => { } }) 
                     </div>
                     <div className="pos-display-flex pos-flex-center pos-padding-0 pos-flex-justify-between">
                         <h4>Total:</h4>
-                        <h2>{selectedProduct.price * selectedProduct.qty}</h2>
+                        <h2>{selectedProduct.ratail_price * selectedProduct.qty}</h2>
                     </div>
                     <div>
                         <button className="pos-btn">Order</button>
                     </div>
                 </form>
             } dismiss={() => setSelectedProduct(null)} />}
-
             {/* End set quanitity form */}
 
             <div className="pos-display-flex pos-flex-justify-center pos-padding-10">
@@ -110,7 +118,7 @@ function Order({ orderNumber = 1, customerNumber = 1, onNewOrder = () => { } }) 
                             </select>
                         </div>
                         {productSearchFocus && <div className="search-results pos-w-80">
-                            {searchedItems.map(product => <a href onClick={() => setSelectedProduct({ ...product, qty: 1 })} >
+                            {searchedItems.map(product => <a key={product.id} onClick={() => setSelectedProduct({ ...product, qty: 1 })} >
                                 <div>{product.name}</div>
                                 <div className="pos-w-40">Code: {product.code}</div>
                             </a>)}
@@ -123,19 +131,25 @@ function Order({ orderNumber = 1, customerNumber = 1, onNewOrder = () => { } }) 
                         <div className="pos-card-body ">
                             <table className="pos-table pos-table-bordered">
                                 <tbody>
-                                    {order.map(p => <tr>
+                                    {order.length ? order.map(p => <tr key={p.id}>
                                         <td>{p.name}</td>
                                         <td>{p.qty}</td>
-                                        <td align="right"><strong>{p.price * p.qty}</strong></td>
-                                    </tr>)}
+                                        <td align="right"><strong>{p.ratail_price * p.qty}</strong></td>
+                                    </tr>) : <tr>
+                                        <td align='center'>
+                                            <h3>No items ordered</h3>
+                                            <p>Search for products and add them in the order<br/>
+                                            then click "Pay Order" to complete an order</p>
+                                        </td>
+                                    </tr>}
                                 </tbody>
                             </table>
                         </div>
                         <hr />
 
                         <div className="pos-card-footer pos-display-flex pos-flex-justify-between pos-flex-center">
-                            <button type="button" className="pos-btn" onClick={toggleModal}>Complete Order</button>
-                            <h2 className="pos-padding-0">Total: {order.reduce((a, b) => a + (b.price * b.qty), 0).toFixed(2)}</h2>
+                            <button type="button" className="pos-btn" onClick={payOrder}>Pay Order</button>
+                            <h2 className="pos-padding-0">Total: {order.reduce((a, b) => a + (b.ratail_price * b.qty), 0).toFixed(2)}</h2>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "./userProvider";
+import configs from "../configs.json"
 
 function Login({ base }) {
 
@@ -13,16 +14,20 @@ function Login({ base }) {
         evt.preventDefault();
         if (formData.username && formData.password) {
             setMessage(null);
-            fetch("http://localhost:3001/users").then(resp => resp.json()).then((users) => {
-                const user = users.find(u => u.username === formData.username && u.password === formData.password);
-                if (user) {
-                    delete user.password;
-                    // sessionStorage.setItem("user", JSON.stringify(user));
-                    setUser(user);
+
+            fetch(`${configs.api_endpoint}/auth`, {
+                method: "POST",
+                body: JSON.stringify(formData),
+                headers:{
+                    "Content-Type":"application/json"
                 }
-                else{
+            }).then(resp => resp.json()).then((user) => {
+                if(user.error){
                     setMessage("Invalid username or password");
+                    return
                 }
+                sessionStorage.setItem("user", JSON.stringify(user))
+                setUser(user);
             })
             .catch(e=>{
                 setMessage("Something went wrong");

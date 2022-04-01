@@ -36,6 +36,10 @@ function App() {
     setUser(null);
   }
 
+  /* if(sessionStorage.getItem("user")){
+    setUser(JSON.parse(sessionStorage.getItem("user")));
+  } */
+
   return (
     <div>
       <TopNav onSignOut={signout} base={base} />
@@ -48,7 +52,7 @@ function App() {
             onNewOrder={newOrder}
             base={base}
           />} />
-        <Route path={base + "/orders"} element={<Orders orders={orders} onCheckout={checkoutOrder} />} />
+        <Route path={base + "/orders"} element={<Orders onCheckout={checkoutOrder} />} />
         <Route path="**" element={<div>404 Page not found</div>} />
       </Routes>
     </div>
